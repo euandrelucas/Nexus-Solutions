@@ -4,7 +4,7 @@ module.exports = {
 	name: Events.InteractionCreate,
 	once: false,
 	async execute (interaction) {
-		await interaction.client.db.checkCentral(interaction.guildId);
+		await interaction.client.db.hosting.checkCentral(interaction.guildId);
 		if (!interaction.isChatInputCommand()) return;
 
 		const command = interaction.client.commands.get(interaction.commandName);
