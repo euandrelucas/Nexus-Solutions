@@ -138,7 +138,7 @@ module.exports = {
 						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo iniciado...`
 					});
 					// Inicie o container
-					child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error, stdout, stderr) => {
+					child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error, stdout, stderr) => {
 						// Verifique se houve algum erro
 						if (error) {
 							// Se houver, envie no canal de logs
