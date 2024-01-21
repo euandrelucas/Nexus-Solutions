@@ -37,23 +37,26 @@ module.exports = {
 			const stats = child_process.execSync(`docker stats ${collector.values[0]} --no-stream --format "{{json .}}"`).toString();
 			const statsJSON = JSON.parse(stats);
 			console.log(statsJSON);
-			const logs = child_process.execSync(`docker logs --tail 10 ${collector.values[0]}`).toString();
+			const logs = child_process.execSync(`docker logs --tail 5 ${collector.values[0]}`).toString();
 			console.log(logs);
 			const botinfo = await interaction.client.users.cache.get(collector.values[0]) ? interaction.client.users.cache.get(collector.values[0]) : await interaction.client.users.fetch(collector.values[0], {
 				force: true
 			});
 			const started = new Date(statusJSON.StartedAt);
 			const finished = new Date(statusJSON.FinishedAt);
-            let status
-            if (statusJSON.Status === 'running') {
-                status = 'Executando'
-            } else if (statusJSON.Status === 'created') {
-                status = 'Criado'
-            } else if (statusJSON.Status === 'exited') {
-                status = 'Finalizado'
-            } else if (statusJSON.Status === 'paused') {
-                status = 'Pausado'
-            }
+			let status2;
+			if (statusJSON.Status === 'running') {
+				status2 = 'Executando';
+			}
+			else if (statusJSON.Status === 'created') {
+				status2 = 'Criado';
+			}
+			else if (statusJSON.Status === 'exited') {
+				status2 = 'Finalizado';
+			}
+			else if (statusJSON.Status === 'paused') {
+				status2 = 'Pausado';
+			}
 			const embed = new EmbedBuilder()
 				.setTitle(`Gerenciar - ${botinfo.username}`)
 				.setColor('Blurple')
@@ -65,7 +68,7 @@ module.exports = {
 				.addFields(
 					{
 						name: '📊 Status',
-						value: `**Status:** ${status}\n**Iniciado em:** ${started.toLocaleDateString('pt-BR')}\n**Finalizado em:** ${finished.toLocaleDateString('pt-BR')}`,
+						value: `**Status:** ${status2}\n**Iniciado em:** ${started.toLocaleDateString('pt-BR')}\n**Finalizado em:** ${finished.toLocaleDateString('pt-BR')}`,
 						inline: true
 					},
 					{
@@ -74,7 +77,7 @@ module.exports = {
 						inline: true
 					},
 					{
-						name: '📃 Últimas 10 linhas de logs',
+						name: '📃 Últimas 5 linhas de logs',
 						value: `\`\`\`${logs}\`\`\``
 					}
 				);
