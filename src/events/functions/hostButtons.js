@@ -26,7 +26,7 @@ module.exports = async (interaction) => {
 			})
 			.setColor('Blurple');
 		await user.send({ embeds: [embed], files: [attachment] }).catch(() => {
-			return interaction.reply({ embeds: [embed], files: [attachment], ephemeral: true });
+			return interaction.editReply({ embeds: [embed], files: [attachment], ephemeral: true });
 		});
 		await interaction.editReply({ content: 'Logs enviados com sucesso!', ephemeral: true });
 	}
