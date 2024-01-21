@@ -32,7 +32,7 @@ module.exports = async (interaction) => {
 		await interaction.editReply({ content: 'Logs enviados com sucesso!', ephemeral: true });
 		const logsc = await interaction.client.channels.cache.get(config.logs.host);
 		logsc.send({
-			content: `${interaction.client.emoji.success} | Os logs do bot \`${bot.username.replace(/`/g, '')}\` foram enviados para o usuário \`${user.tag}\!`
+			content: `${interaction.client.emoji.success} | Os logs do bot \`${bot.username.replace(/`/g, '')}\` foram enviados para o usuário \`${user.tag}\`!`
 		});
 	}
 	if (interaction.customId.startsWith('stop')) {
@@ -125,16 +125,36 @@ module.exports = async (interaction) => {
 	if (interaction.customId.startsWith('delete')) {
 		await interaction.deferReply({ ephemeral: true });
 		const userId = interaction.customId.split(';')[1];
+		if (interaction.user.id !== userId) return interaction.editReply({ content: 'Você não pode excluir o bot de outra pessoa!', ephemeral: true });
 		const botId = interaction.customId.split(';')[2];
-		await child_process.execSync(`docker stop ${botId}`).toString();
-		await child_process.execSync(`docker rm ${botId}`).toString();
-		await child_process.execSync(`docker rmi ${botId}`).toString();
+		// Faça um backup do container e envie em formato de zip para o usuário, exclua a pasta node_modules do backup.
+		await child_process.execSync(`docker commit ${botId} ${botId}-backup`).toString();
+		await child_process.execSync(`docker export ${botId}-backup > ${botId}-backup.tar`).toString();
+		await child_process.execSync(`tar -czvf ${botId}-backup.tar.gz ${botId}-backup.tar`).toString();
+		const attachment = new AttachmentBuilder(Buffer.from(`${botId}-backup.tar.gz`), {
+			name: `${botId}-backup.tar.gz`
+		});
 		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
 			force: true
 		});
 		const bot = await interaction.client.users.cache.get(botId) ? await interaction.client.users.cache.get(botId) : await interaction.client.users.fetch(botId, {
 			force: true
 		});
+		const embed2 = new EmbedBuilder()
+			.setTitle(`Excluir - ${bot.username}`)
+			.setDescription(`O bot ${botId} foi excluído com sucesso!`)
+			.setThumbnail(bot.displayAvatarURL({ dynamic: true, size: 4096 }))
+			.setFooter({
+				text: 'Powered by: Nexus Solutions',
+				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
+			})
+			.setColor('Blurple');
+		await user.send({ embeds: [embed2], files: [attachment] }).catch(() => {
+			return interaction.editReply({ embeds: [embed], files: [attachment], ephemeral: true });
+		});
+		await child_process.execSync(`docker stop ${botId}`).toString();
+		await child_process.execSync(`docker rm ${botId}`).toString();
+		await child_process.execSync(`docker rmi ${botId}`).toString();
 		const embed = new EmbedBuilder()
 			.setTitle(`Excluir - ${bot.username}`)
 			.setDescription(`O bot ${botId} foi excluído com sucesso!`)
@@ -147,6 +167,10 @@ module.exports = async (interaction) => {
 		await user.send({ embeds: [embed] }).catch(() => {
 			return interaction.editReply({ embeds: [embed], ephemeral: true });
 		});
+		await interaction.client.db.hbots.deleteBot(interaction.user.id, bot.id);
+		const user2 = await interaction.client.db.user.checkUser(interaction.user.id);
+		if (!user2) return;
+		await interaction.client.db.user.removeBot(interaction.user.id, bot.id);
 		await interaction.editReply({ content: 'Bot excluído com sucesso!', ephemeral: true });
 		const logsc = await interaction.client.channels.cache.get(config.logs.host);
 		logsc.send({
