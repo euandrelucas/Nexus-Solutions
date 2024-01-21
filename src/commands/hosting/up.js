@@ -145,19 +145,10 @@ module.exports = {
 						logs.send({
 							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
 						});
-						await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, nexusConfigJSON.ram, nexusConfigJSON.cpu, botID);
-						logs.send({
-							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
-						});
-						logs.send({
-							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
-						});
-						logs.send({
-							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
-						});
-						logs.send({
-							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
-						});
+						await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')), Number(nexusConfigJSON.cpu), botID);
+						const user = await interaction.client.db.user.checkUser(interaction.user.id);
+						if (!user) return;
+						await interaction.client.db.user.addBot(interaction.user.id, botID, language, Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')), Number(nexusConfigJSON.cpu));
 						logs.send({
 							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
 						});
@@ -171,7 +162,6 @@ module.exports = {
 							logs.send({
 								content: `${interaction.client.emoji.success} | O cache do docker foi limpo!`
 							});
-
 							await interaction.db.hosting.addFreeBot(interaction.guild.id);
 							const central = await interaction.db.hosting.getCentral(interaction.guild.id);
 							console.log(central.freeBots);

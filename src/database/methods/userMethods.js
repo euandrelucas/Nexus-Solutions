@@ -10,6 +10,15 @@ const createUser = async (userID) => {
 	return user;
 };
 
+const checkUser = async (userID) => {
+	const user = await getUser(userID);
+	if (!user) {
+		const user = await createUser(userID);
+		return user;
+	}
+	return user;
+};
+
 const getUser = async (userID) => {
 	const user = await UserModel.findOne({ userID: userID });
 	return user;
@@ -40,6 +49,7 @@ const removeBot = async (userID, botID) => {
 };
 
 module.exports = {
+	checkUser,
 	createUser,
 	getUser,
 	addBot,
