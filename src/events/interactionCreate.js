@@ -4,9 +4,6 @@ module.exports = {
 	name: Events.InteractionCreate,
 	once: false,
 	async execute (interaction) {
-		if (interaction.isButton()) {
-			require('./methods/hostPanel')(interaction);
-		}
 		if (!interaction.isChatInputCommand()) return;
 
 		const command = interaction.client.commands.get(interaction.commandName);
