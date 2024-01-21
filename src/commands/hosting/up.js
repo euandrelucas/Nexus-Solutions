@@ -34,7 +34,8 @@ module.exports = {
 				.setRequired(true)),
 	async execute (interaction) {
 		await interaction.deferReply();
-		const botID = interaction.options.getUser('bot').id;
+		const bot = interaction.options.getUser('bot');
+		const botID = bot.id;
 		const language = interaction.options.getString('language');
 		const file = interaction.options.getAttachment('file');
 
@@ -106,59 +107,59 @@ module.exports = {
 
 			const embed = new EmbedBuilder()
 				.setTitle('Hospedagem')
-				.setDescription(`O bot ${botID} foi adicionado à fila de hospedagem!`)
+				.setDescription(`O bot **${bot.username}** foi adicionado à fila de hospedagem!`)
 				.setColor('Green')
 				.setTimestamp();
 			await interaction.editReply({ embeds: [embed] }).then(async () => {
 				const logs = await interaction.client.channels.cache.get(config.logs.host);
 				logs.send({
-					content: `${interaction.client.emoji.loading} | O bot ${botID} foi adicionado à fila de hospedagem!`
+					content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado à fila de hospedagem!`
 				});
 
 				child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error) => {
 					logs.send({
-						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo montado...`
+						content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo montado...`
 					});
 					if (error) {
 						logs.send({
-							content: `${interaction.client.emoji.error} | Ocorreu um erro ao montar o bot ${botID}.\n\`\`\`${error}\`\`\``
+							content: `${interaction.client.emoji.error} | Ocorreu um erro ao montar o bot \`${bot.username.replace(/`/g, '')}\`.\n\`\`\`${error}\`\`\``
 						});
 						return;
 					}
 					logs.send({
-						content: `${interaction.client.emoji.success} | O bot ${botID} foi montado!`
+						content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi montado!`
 					});
 					logs.send({
-						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo iniciado...`
+						content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo iniciado...`
 					});
 					child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error, stdout, stderr) => {
 						if (error) {
 							logs.send({
-								content: `${interaction.client.emoji.error} | Ocorreu um erro ao iniciar o bot ${botID}.\n\`\`\`${error}\`\`\``
+								content: `${interaction.client.emoji.error} | Ocorreu um erro ao iniciar o bot \`${bot.username.replace(/`/g, '')}\`.\n\`\`\`${error}\`\`\``
 							});
 							return;
 						}
 						logs.send({
-							content: `${interaction.client.emoji.success} | O bot ${botID} foi iniciado!`
+							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi iniciado!`
 						});
 						logs.send({
-							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
+							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
 						});
 						await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, nexusConfigJSON.ram, nexusConfigJSON.cpu, botID);
 						logs.send({
-							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
+							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
 						});
 						logs.send({
-							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
+							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
 						});
 						logs.send({
-							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
+							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
 						});
 						logs.send({
-							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
+							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
 						});
 						logs.send({
-							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
+							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
 						});
 						child_process.exec('docker system prune -f', async (error) => {
 							if (error) {
