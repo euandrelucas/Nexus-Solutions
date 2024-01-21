@@ -29,7 +29,6 @@ module.exports = {
 		const message = await interaction.reply({ embeds: [embed], components: [row] });
 		const collectorFilter = i => i.user.id === interaction.user.id;
 		const collector = await message.awaitMessageComponent({ filter: collectorFilter, time: 60000 });
-		console.log(collector);
 		if (collector.customId === `select;${interaction.user.id};bots`) {
 			const status = child_process.execSync(`docker container inspect ${collector.values[0]} --format '{{json .State}}'`).toString();
 			const statusJSON = JSON.parse(status);
@@ -114,7 +113,7 @@ module.exports = {
 				.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
 			const deleteButton = new ButtonBuilder()
 				.setCustomId(`delete;${interaction.user.id};${collector.values[0]}`)
-				.setLavel('DELETAR BOT')
+				.setLanel('DELETAR BOT')
 				.setEmoji('🗑️')
 				.setStyle('Danger');
 			const row2 = new ActionRowBuilder()
