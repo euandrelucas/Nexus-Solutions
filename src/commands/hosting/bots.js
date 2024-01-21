@@ -37,34 +37,44 @@ module.exports = {
 			const stats = child_process.execSync(`docker stats ${collector.values[0]} --no-stream --format "{{json .}}"`).toString();
 			const statsJSON = JSON.parse(stats);
 			console.log(statsJSON);
-			const logs = child_process.execSync(`docker logs --tail 5 ${collector.values[0]}`).toString();
+			const logs = child_process.execSync(`docker logs --tail 10 ${collector.values[0]}`).toString();
 			console.log(logs);
 			const botinfo = await interaction.client.users.cache.get(collector.values[0]) ? interaction.client.users.cache.get(collector.values[0]) : await interaction.client.users.fetch(collector.values[0], {
 				force: true
 			});
 			const started = new Date(statusJSON.StartedAt);
 			const finished = new Date(statusJSON.FinishedAt);
+            let status
+            if (statusJSON.Status === 'running') {
+                status = 'Executando'
+            } else if (statusJSON.Status === 'created') {
+                status = 'Criado'
+            } else if (statusJSON.Status === 'exited') {
+                status = 'Finalizado'
+            } else if (statusJSON.Status === 'paused') {
+                status = 'Pausado'
+            }
 			const embed = new EmbedBuilder()
 				.setTitle(`Gerenciar - ${botinfo.username}`)
 				.setColor('Blurple')
 				.setThumbnail(botinfo.displayAvatarURL({ dynamic: true, size: 4096 }))
 				.setFooter({
-					text: 'Powered by: Nexus',
+					text: 'Powered by: Nexus Solutions',
 					iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
 				})
 				.addFields(
 					{
-						name: 'Status',
-						value: `**Status:** ${statusJSON.Status}\n**Iniciado em:** ${started.toLocaleDateString('pt-BR')}\n**Finalizado em:** ${finished.toLocaleDateString('pt-BR')}`,
+						name: '📊 Status',
+						value: `**Status:** ${status}\n**Iniciado em:** ${started.toLocaleDateString('pt-BR')}\n**Finalizado em:** ${finished.toLocaleDateString('pt-BR')}`,
 						inline: true
 					},
 					{
-						name: 'Uso de CPU e RAM',
+						name: '💻 Uso de CPU e RAM',
 						value: `**CPU:** ${statsJSON.CPUPerc}\n**RAM:** ${statsJSON.MemUsage}`,
 						inline: true
 					},
 					{
-						name: 'Últimas 10 linhas de logs',
+						name: '📃 Últimas 10 linhas de logs',
 						value: `\`\`\`${logs}\`\`\``
 					}
 				);
