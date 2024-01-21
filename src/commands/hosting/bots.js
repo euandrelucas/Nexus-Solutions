@@ -107,7 +107,6 @@ module.exports = {
 			const reloadButton = new ButtonBuilder()
 				.setCustomId(`reload;${interaction.user.id};${collector.values[0]}`)
 				.setEmoji('🔄')
-				.setDisabled(statusJSON.Status === 'running' ? true : false)
 				.setStyle('Secondary');
 			const row = new ActionRowBuilder()
 				.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
