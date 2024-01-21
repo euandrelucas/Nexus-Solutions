@@ -110,6 +110,52 @@ module.exports = {
 				logs.send({
 					content: `${interaction.client.emoji.loading} | O bot ${botID} foi adicionado à fila de hospedagem!`
 				});
+				// Dê deploy usando child_process
+				child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error, stdout, stderr) => {
+					if (error) {
+						console.log(error);
+						const embed = new EmbedBuilder()
+							.setTitle('Hospedagem')
+							.setDescription(`O bot ${botID} não foi hospedado!`)
+							.setColor('Red')
+							.setTimestamp();
+						await interaction.editReply({ embeds: [embed] }).then(async () => {
+							const logs = await interaction.client.channels.cache.get(config.channels.logs);
+							logs.send({
+								content: `${interaction.client.emoji.error} | O bot ${botID} não foi hospedado!`
+							});
+						});
+						return;
+					}
+
+					if (stderr) {
+						console.log(stderr);
+						const embed = new EmbedBuilder()
+							.setTitle('Hospedagem')
+							.setDescription(`O bot ${botID} não foi hospedado!`)
+							.setColor('Red')
+							.setTimestamp();
+						await interaction.editReply({ embeds: [embed] }).then(async () => {
+							const logs = await interaction.client.channels.cache.get(config.channels.logs);
+							logs.send({
+								content: `${interaction.client.emoji.error} | O bot ${botID} não foi hospedado!`
+							});
+						});
+						return;
+					}
+
+					const embed = new EmbedBuilder()
+						.setTitle('Hospedagem')
+						.setDescription(`O bot ${botID} foi hospedado!`)
+						.setColor('Green')
+						.setTimestamp();
+					await interaction.editReply({ embeds: [embed] }).then(async () => {
+						const logs = await interaction.client.channels.cache.get(config.channels.logs);
+						logs.send({
+							content: `${interaction.client.emoji.success} | O bot ${botID} foi hospedado!`
+						});
+					});
+				});
 			});
 		}
 		catch (error) {
