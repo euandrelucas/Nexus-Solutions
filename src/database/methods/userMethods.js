@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const createUser = async (userID) => {
 	const user = new UserModel({
-		_id: mongoose.Types.ObjectId(),
+		_id: new mongoose.Types.ObjectId(),
 		userID: userID
 	});
 	await user.save();

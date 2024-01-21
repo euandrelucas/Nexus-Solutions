@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const createBot = async (userID, botID, language, ram, cpu, containerName) => {
 	const bot = new BotModel({
-		_id: mongoose.Types.ObjectId(),
+		_id: new mongoose.Types.ObjectId(),
 		userID: userID,
 		botID: botID,
 		language: language,

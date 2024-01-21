@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const createCentral = async (guildId) => {
 	const central = new CentralModel({
-		_id: mongoose.Types.ObjectId(),
+		_id: new mongoose.Types.ObjectId(),
 		guildId: guildId
 	});
 	await central.save();

@@ -114,72 +114,68 @@ module.exports = {
 				logs.send({
 					content: `${interaction.client.emoji.loading} | O bot ${botID} foi adicionado à fila de hospedagem!`
 				});
-				// Dê build no container
-				child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error, stdout, stderr) => {
-					// Envie no canal de logs que o container está sendo montado
+
+				child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error) => {
 					logs.send({
 						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo montado...`
 					});
-					// Verifique se houve algum erro
 					if (error) {
-						// Se houver, envie no canal de logs
 						logs.send({
 							content: `${interaction.client.emoji.error} | Ocorreu um erro ao montar o bot ${botID}.\n\`\`\`${error}\`\`\``
 						});
-						// E retorne
 						return;
 					}
-					// Envie no canal de logs que o container foi montado
 					logs.send({
 						content: `${interaction.client.emoji.success} | O bot ${botID} foi montado!`
 					});
-					// Envie no canal de logs que o container está sendo iniciado
 					logs.send({
 						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo iniciado...`
 					});
-					// Inicie o container
 					child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error, stdout, stderr) => {
-						// Verifique se houve algum erro
 						if (error) {
-							// Se houver, envie no canal de logs
 							logs.send({
 								content: `${interaction.client.emoji.error} | Ocorreu um erro ao iniciar o bot ${botID}.\n\`\`\`${error}\`\`\``
 							});
-							// E retorne
 							return;
 						}
-						// Envie no canal de logs que o container foi iniciado
 						logs.send({
 							content: `${interaction.client.emoji.success} | O bot ${botID} foi iniciado!`
 						});
-						// Envie no canal de logs que o bot está sendo adicionado ao banco de dados
 						logs.send({
 							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
 						});
-						// Adicione o bot ao banco de dados usando interaction.client.db.hbots
-						/*
-                        Seguindo esse modelo:
-                        */
 						await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, nexusConfigJSON.ram, nexusConfigJSON.cpu, botID);
-						// Envie no canal de logs que o bot foi adicionado ao banco de dados
 						logs.send({
 							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
 						});
-						// Envie no canal de logs que o bot está sendo adicionado ao banco de dados
 						logs.send({
 							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
 						});
-						// Envie no canal de logs que o bot foi adicionado ao banco de dados
 						logs.send({
 							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
 						});
-						// Envie no canal de logs que o bot está sendo adicionado ao banco de dados
 						logs.send({
 							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
 						});
-						// Envie no canal de logs que o bot foi adicionado ao banco de dados
 						logs.send({
 							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
+						});
+						child_process.exec('docker system prune -f', async (error) => {
+							if (error) {
+								logs.send({
+									content: `${interaction.client.emoji.error} | Ocorreu um erro ao limpar o cache do docker.\n\`\`\`${error}\`\`\``
+								});
+								return;
+							}
+							logs.send({
+								content: `${interaction.client.emoji.success} | O cache do docker foi limpo!`
+							});
+
+							await interaction.db.hosting.addFreeBot(interaction.guild.id);
+							const central = await interaction.db.hosting.getCentral(interaction.guild.id);
+							console.log(central.freeBots);
+							const freeBotsChannel = await interaction.client.channels.cache.get(config.logs.freeBots);
+							freeBotsChannel.setName(`➤💻︙Bots Free: ${central.freeBots}/${central.freeBotsLimit}`);
 						});
 					});
 				});
