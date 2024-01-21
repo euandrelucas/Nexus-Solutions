@@ -113,7 +113,7 @@ module.exports = {
 				.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
 			const deleteButton = new ButtonBuilder()
 				.setCustomId(`delete;${interaction.user.id};${collector.values[0]}`)
-				.setLanel('DELETAR BOT')
+				.setLabel('DELETAR BOT')
 				.setEmoji('🗑️')
 				.setStyle('Danger');
 			const row2 = new ActionRowBuilder()
