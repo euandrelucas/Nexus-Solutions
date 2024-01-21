@@ -35,6 +35,13 @@ module.exports = {
 			const status = child_process.execSync(`docker container inspect ${collector.values[0]} --format '{{json .State}}'`).toString();
 			const statusJSON = JSON.parse(status);
 			console.log(statusJSON);
+			// Obtenha também o uso de CPU e RAM do bot
+			const stats = child_process.execSync(`docker stats ${collector.values[0]} --no-stream --format "{{json .}}"`).toString();
+			const statsJSON = JSON.parse(stats);
+			console.log(statsJSON);
+			// Obtenha também os últimos 5 logs do bot
+			const logs = child_process.execSync(`docker logs --tail 5 ${collector.values[0]}`).toString();
+			console.log(logs);
 		}
 	},
 };
