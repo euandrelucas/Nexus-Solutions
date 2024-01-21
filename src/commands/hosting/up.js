@@ -66,7 +66,7 @@ module.exports = {
 
 			if (!fs.existsSync(path.resolve(`${botSpecificDir}/package.json`))) {
 				fs.rmdirSync(botSpecificDir, { recursive: true });
-				return interaction.reply({ content: 'O arquivo package.json não foi encontrado!', ephemeral: true });
+				return interaction.editReply({ content: 'O arquivo package.json não foi encontrado!', ephemeral: true });
 			}
 
 			if (fs.existsSync(path.resolve(`${botSpecificDir}/Dockerfile`))) {
@@ -95,6 +95,10 @@ module.exports = {
 				return interaction.editReply({ content: 'O arquivo de inicialização do bot não foi encontrado!', ephemeral: true });
 			}
 
+			if (nexusConfigJSON.ram > 512) return interaction.editReply({ content: 'A quantidade de RAM não pode ser maior que 512MB!', ephemeral: true });
+
+			if (nexusConfigJSON.cpu > 2) return interaction.editReply({ content: 'A quantidade de CPU não pode ser maior que 2!', ephemeral: true });
+
 			const dockerImage = fs.readFileSync(path.resolve(`${botSpecificDir}/Dockerfile`), 'utf8');
 			const dockerImageArray = dockerImage.split('\n');
 			dockerImageArray[dockerImageArray.length - 1] = `CMD ["node", "${nexusConfigJSON.run}"]`;
@@ -110,49 +114,72 @@ module.exports = {
 				logs.send({
 					content: `${interaction.client.emoji.loading} | O bot ${botID} foi adicionado à fila de hospedagem!`
 				});
-				// Dê deploy usando child_process
+				// Dê build no container
 				child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error, stdout, stderr) => {
+					// Envie no canal de logs que o container está sendo montado
+					logs.send({
+						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo montado...`
+					});
+					// Verifique se houve algum erro
 					if (error) {
-						console.log(error);
-						const embed = new EmbedBuilder()
-							.setTitle('Hospedagem')
-							.setDescription(`O bot ${botID} não foi hospedado!`)
-							.setColor('Red')
-							.setTimestamp();
-						await interaction.editReply({ embeds: [embed] }).then(async () => {
-							const logs = await interaction.client.channels.cache.get(config.channels.logs);
-							logs.send({
-								content: `${interaction.client.emoji.error} | O bot ${botID} não foi hospedado!`
-							});
-						});
-						return;
-					}
-
-					if (stderr) {
-						console.log(stderr);
-						const embed = new EmbedBuilder()
-							.setTitle('Hospedagem')
-							.setDescription(`O bot ${botID} não foi hospedado!`)
-							.setColor('Red')
-							.setTimestamp();
-						await interaction.editReply({ embeds: [embed] }).then(async () => {
-							const logs = await interaction.client.channels.cache.get(config.channels.logs);
-							logs.send({
-								content: `${interaction.client.emoji.error} | O bot ${botID} não foi hospedado!`
-							});
-						});
-						return;
-					}
-
-					const embed = new EmbedBuilder()
-						.setTitle('Hospedagem')
-						.setDescription(`O bot ${botID} foi hospedado!`)
-						.setColor('Green')
-						.setTimestamp();
-					await interaction.editReply({ embeds: [embed] }).then(async () => {
-						const logs = await interaction.client.channels.cache.get(config.channels.logs);
+						// Se houver, envie no canal de logs
 						logs.send({
-							content: `${interaction.client.emoji.success} | O bot ${botID} foi hospedado!`
+							content: `${interaction.client.emoji.error} | Ocorreu um erro ao montar o bot ${botID}.\n\`\`\`${error}\`\`\``
+						});
+						// E retorne
+						return;
+					}
+					// Envie no canal de logs que o container foi montado
+					logs.send({
+						content: `${interaction.client.emoji.success} | O bot ${botID} foi montado!`
+					});
+					// Envie no canal de logs que o container está sendo iniciado
+					logs.send({
+						content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo iniciado...`
+					});
+					// Inicie o container
+					child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error, stdout, stderr) => {
+						// Verifique se houve algum erro
+						if (error) {
+							// Se houver, envie no canal de logs
+							logs.send({
+								content: `${interaction.client.emoji.error} | Ocorreu um erro ao iniciar o bot ${botID}.\n\`\`\`${error}\`\`\``
+							});
+							// E retorne
+							return;
+						}
+						// Envie no canal de logs que o container foi iniciado
+						logs.send({
+							content: `${interaction.client.emoji.success} | O bot ${botID} foi iniciado!`
+						});
+						// Envie no canal de logs que o bot está sendo adicionado ao banco de dados
+						logs.send({
+							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
+						});
+						// Adicione o bot ao banco de dados usando interaction.client.db.hbots
+						/*
+                        Seguindo esse modelo:
+                        */
+						await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, nexusConfigJSON.ram, nexusConfigJSON.cpu, botID);
+						// Envie no canal de logs que o bot foi adicionado ao banco de dados
+						logs.send({
+							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
+						});
+						// Envie no canal de logs que o bot está sendo adicionado ao banco de dados
+						logs.send({
+							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
+						});
+						// Envie no canal de logs que o bot foi adicionado ao banco de dados
+						logs.send({
+							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
+						});
+						// Envie no canal de logs que o bot está sendo adicionado ao banco de dados
+						logs.send({
+							content: `${interaction.client.emoji.loading} | O bot ${botID} está sendo adicionado ao banco de dados...`
+						});
+						// Envie no canal de logs que o bot foi adicionado ao banco de dados
+						logs.send({
+							content: `${interaction.client.emoji.success} | O bot ${botID} foi adicionado ao banco de dados!`
 						});
 					});
 				});
@@ -160,7 +187,7 @@ module.exports = {
 		}
 		catch (error) {
 			console.error('Erro ao processar o arquivo do bot:', error);
-			interaction.reply({ content: 'Ocorreu um erro ao processar o arquivo do bot.', ephemeral: true });
+			interaction.editReply({ content: 'Ocorreu um erro ao processar o arquivo do bot.', ephemeral: true });
 		}
 	},
 };

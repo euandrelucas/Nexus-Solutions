@@ -1,14 +1,15 @@
 const BotModel = require('../schemas/hbotSchema.js');
 const mongoose = require('mongoose');
 
-const createBot = async (userID, botID, language, ram, cpu) => {
+const createBot = async (userID, botID, language, ram, cpu, containerName) => {
 	const bot = new BotModel({
 		_id: mongoose.Types.ObjectId(),
 		userID: userID,
 		botID: botID,
 		language: language,
 		ram: ram,
-		cpu: cpu
+		cpu: cpu,
+		containerName: containerName
 	});
 	await bot.save();
 	return bot;

@@ -34,7 +34,7 @@ jobs:
       - name: Instalando dependências
         run: ssh prod 'bash -i -c "cd Nexus-Solutions && rm -rf node_modules && npm install"'
       - name: Parando o container atual
-        run: ssh prod 'bash -i -c "cd Nexus-Solutions && pm2 stop nexuss"'
+        run: ssh prod 'bash -i -c "cd Nexus-Solutions && pm2 stop nexus"'
       - name: Iniciando o novo container
         run: ssh prod 'bash -i -c "cd Nexus-Solutions && pm2 start src/index.js --name nexus"'
       - name: Deletando o cache do docker
