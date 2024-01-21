@@ -28,14 +28,14 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
       - name: Resetar o repositório
-        run: ssh prod 'bash -i -c "cd lyra && git reset --hard origin/main"'
+        run: ssh prod 'bash -i -c "cd Nexus-Solutions && git reset --hard origin/main"'
       - name: Clonar repositório
-        run: ssh prod 'cd lyra && git pull https://${{ secrets.GIT_SECRET }}:x-oauth-basic@github.com/lyradcbot/lyra.git main --force'
-      - name: Construindo container
-        run: ssh prod 'bash -i -c "cd lyra && docker compose build"'
+        run: ssh prod 'cd lyra && git pull https://${{ secrets.GIT_SECRET }}:x-oauth-basic@github.com/euandrelucas/Nexus-Solutions.git main --force'
+      - name: Instalando dependências
+        run: ssh prod 'bash -i -c "cd Nexus-Solutions && rm -rf node_modules && npm install"'
       - name: Parando o container atual
-        run: ssh prod 'bash -i -c "docker rm --force lyra"'
+        run: ssh prod 'bash -i -c "cd Nexus-Solutions && pm2 stop nexuss"'
       - name: Iniciando o novo container
-        run: ssh prod 'bash -i -c "cd lyra && docker compose up -d"'
+        run: ssh prod 'bash -i -c "cd Nexus-Solutions && pm2 start src/index.js --name nexus"'
       - name: Deletando o cache do docker
         run: ssh prod 'bash -i -c "docker system prune --all --force"'
