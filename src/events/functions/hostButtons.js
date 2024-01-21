@@ -93,6 +93,35 @@ module.exports = async (interaction) => {
 			content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi reiniciado pelo usuário \`${user.tag}\`!`
 		});
 	}
+	if (interaction.customId.startsWith('start')) {
+		await interaction.deferReply({ ephemeral: true });
+		const userId = interaction.customId.split(';')[1];
+		const botId = interaction.customId.split(';')[2];
+		await child_process.execSync(`docker start ${botId}`).toString();
+		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
+			force: true
+		});
+		const bot = await interaction.client.users.cache.get(botId) ? await interaction.client.users.cache.get(botId) : await interaction.client.users.fetch(botId, {
+			force: true
+		});
+		const embed = new EmbedBuilder()
+			.setTitle(`Iniciar - ${bot.username}`)
+			.setDescription(`O bot ${botId} foi iniciado com sucesso!`)
+			.setThumbnail(bot.displayAvatarURL({ dynamic: true, size: 4096 }))
+			.setFooter({
+				text: 'Powered by: Nexus Solutions',
+				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
+			})
+			.setColor('Blurple');
+		await user.send({ embeds: [embed] }).catch(() => {
+			return interaction.editReply({ embeds: [embed], ephemeral: true });
+		});
+		await interaction.editReply({ content: 'Bot iniciado com sucesso!', ephemeral: true });
+		const logsc = await interaction.client.channels.cache.get(config.logs.host);
+		logsc.send({
+			content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi iniciado pelo usuário \`${user.tag}\`!`
+		});
+	}
 	if (interaction.customId.startsWith('delete')) {
 		await interaction.deferReply({ ephemeral: true });
 		const userId = interaction.customId.split(';')[1];

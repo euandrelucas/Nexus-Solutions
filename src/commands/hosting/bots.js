@@ -117,7 +117,7 @@ module.exports = {
 				.setStyle('Danger');
 			const row2 = new ActionRowBuilder()
 				.addComponents(deleteButton);
-			await interaction.editReply({ embeds: [embed], components: [row, row2] });
+			await collector.update({ embeds: [embed], components: [row, row2] });
 		}
 	},
 };
