@@ -3,15 +3,13 @@ const child_process = require('child_process');
 
 module.exports = async (interaction) => {
 	if (interaction.customId.startsWith('logs')) {
+		await interaction.deferReply({ ephemeral: true });
 		const userId = interaction.customId.split(';')[1];
 		const botId = interaction.customId.split(';')[2];
-		// Pegue todas as logs com docker
 		const logs = child_process.execSync(`docker logs ${botId}`).toString();
-		// Crie um arquivo
 		const attachment = new AttachmentBuilder(Buffer.from(logs), {
 			name: `${botId}.txt`
 		});
-		// Envie o arquivo
 		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
 			force: true
 		});
@@ -30,6 +28,6 @@ module.exports = async (interaction) => {
 		await user.send({ embeds: [embed], files: [attachment] }).catch(() => {
 			return interaction.reply({ embeds: [embed], files: [attachment], ephemeral: true });
 		});
-		await interaction.reply({ content: 'Logs enviados com sucesso!', ephemeral: true });
+		await interaction.editReply({ content: 'Logs enviados com sucesso!', ephemeral: true });
 	}
 };
