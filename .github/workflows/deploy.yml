@@ -30,7 +30,7 @@ jobs:
       - name: Resetar o repositório
         run: ssh prod 'bash -i -c "cd Nexus-Solutions && git reset --hard origin/main"'
       - name: Clonar repositório
-        run: ssh prod 'cd lyra && git pull https://${{ secrets.GIT_SECRET }}:x-oauth-basic@github.com/euandrelucas/Nexus-Solutions.git main --force'
+        run: ssh prod 'cd Nexus-Solutions && git pull https://${{ secrets.GIT_SECRET }}:x-oauth-basic@github.com/euandrelucas/Nexus-Solutions.git main --force'
       - name: Instalando dependências
         run: ssh prod 'bash -i -c "cd Nexus-Solutions && rm -rf node_modules && npm install"'
       - name: Parando o container atual
