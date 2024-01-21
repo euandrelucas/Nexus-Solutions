@@ -129,7 +129,7 @@ module.exports = async (interaction) => {
 		const botId = interaction.customId.split(';')[2];
 		// Faça um backup do container e envie em formato de zip para o usuário, exclua a pasta node_modules do backup.
 		await child_process.execSync(`docker commit ${botId} ${botId}-backup`).toString();
-		await child_process.execSync(`docker export ${botId}-backup > ${botId}-backup.tar`).toString();
+		await child_process.execSync(`docker export ${botId} > ${botId}-backup.tar`).toString();
 		await child_process.execSync(`tar -czvf ${botId}-backup.tar.gz ${botId}-backup.tar`).toString();
 		const attachment = new AttachmentBuilder(Buffer.from(`${botId}-backup.tar.gz`), {
 			name: `${botId}-backup.tar.gz`

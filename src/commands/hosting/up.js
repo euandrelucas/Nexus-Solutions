@@ -162,11 +162,13 @@ module.exports = {
 							logs.send({
 								content: `${interaction.client.emoji.success} | O cache do docker foi limpo!`
 							});
-							await interaction.db.hosting.addFreeBot(interaction.guild.id);
-							const central = await interaction.db.hosting.getCentral(interaction.guild.id);
+							await interaction.client.db.hosting.addFreeBot(interaction.guild.id);
+							const central = await interaction.client.db.hosting.getCentral(interaction.guild.id);
 							console.log(central.freeBots);
 							const freeBotsChannel = await interaction.client.channels.cache.get(config.logs.freeBots);
-							freeBotsChannel.setName(`➤💻︙Bots Free: ${central.freeBots}/${central.freeBotsLimit}`);
+							freeBotsChannel.edit({
+								name: `➤💻︙Bots Free: ${central.freeBots}/${central.freeBotsLimit}`
+							});
 						});
 					});
 				});
