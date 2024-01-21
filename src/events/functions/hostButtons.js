@@ -127,13 +127,11 @@ module.exports = async (interaction) => {
 		const userId = interaction.customId.split(';')[1];
 		if (interaction.user.id !== userId) return interaction.editReply({ content: 'Você não pode excluir o bot de outra pessoa!', ephemeral: true });
 		const botId = interaction.customId.split(';')[2];
-		// Faça um backup do container e envie em formato de zip para o usuário, exclua a pasta node_modules do backup.
-		await child_process.execSync(`docker commit ${botId} ${botId}-backup`).toString();
-		await child_process.execSync(`docker export ${botId} > ${botId}-backup.tar`).toString();
+		/*
+		await child_process.execSync(`docker commit ${botId} backups/${botId}-backup`).toString();
+		await child_process.execSync(`docker export ${botId} > backups/${botId}-backup.tar`).toString();
 		await child_process.execSync(`tar -czvf ${botId}-backup.tar.gz ${botId}-backup.tar`).toString();
-		const attachment = new AttachmentBuilder(Buffer.from(`${botId}-backup.tar.gz`), {
-			name: `${botId}-backup.tar.gz`
-		});
+        */
 		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
 			force: true
 		});
@@ -149,8 +147,8 @@ module.exports = async (interaction) => {
 				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
 			})
 			.setColor('Blurple');
-		await user.send({ embeds: [embed2], files: [attachment] }).catch(() => {
-			return interaction.editReply({ embeds: [embed], files: [attachment], ephemeral: true });
+		await user.send({ embeds: [embed2] }).catch(() => {
+			return interaction.editReply({ embeds: [embed], ephemeral: true });
 		});
 		await child_process.execSync(`docker stop ${botId}`).toString();
 		await child_process.execSync(`docker rm ${botId}`).toString();
