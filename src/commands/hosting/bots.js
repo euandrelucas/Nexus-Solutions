@@ -31,17 +31,70 @@ module.exports = {
 		const collector = await message.awaitMessageComponent({ filter: collectorFilter, time: 60000 });
 		console.log(collector);
 		if (collector.customId === `select;${interaction.user.id};bots`) {
-			// Obtenha os status do container do bot
 			const status = child_process.execSync(`docker container inspect ${collector.values[0]} --format '{{json .State}}'`).toString();
 			const statusJSON = JSON.parse(status);
 			console.log(statusJSON);
-			// Obtenha também o uso de CPU e RAM do bot
 			const stats = child_process.execSync(`docker stats ${collector.values[0]} --no-stream --format "{{json .}}"`).toString();
 			const statsJSON = JSON.parse(stats);
 			console.log(statsJSON);
-			// Obtenha também os últimos 5 logs do bot
 			const logs = child_process.execSync(`docker logs --tail 5 ${collector.values[0]}`).toString();
 			console.log(logs);
+			const botinfo = await interaction.client.users.cache.get(collector.values[0]) ? interaction.client.users.cache.get(collector.values[0]) : await interaction.client.users.fetch(collector.values[0], {
+				force: true
+			});
+			const started = new Date(statusJSON.StartedAt);
+			const finished = new Date(statusJSON.FinishedAt);
+			const embed = new EmbedBuilder()
+				.setTitle(`Gerenciar - ${botinfo.username}`)
+				.setColor('Blurple')
+				.setThumbnail(botinfo.displayAvatarURL({ dynamic: true, size: 4096 }))
+				.setFooter({
+					text: 'Powered by: Nexus',
+					iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
+				})
+				.addFields(
+					{
+						name: 'Status',
+						value: `**Status:** ${statusJSON.Status}\n**Iniciado em:** ${started.toLocaleDateString('pt-BR')}\n**Finalizado em:** ${finished.toLocaleDateString('pt-BR')}`,
+						inline: true
+					},
+					{
+						name: 'Uso de CPU e RAM',
+						value: `**CPU:** ${statsJSON.CPUPerc}\n**RAM:** ${statsJSON.MemUsage}`,
+						inline: true
+					},
+					{
+						name: 'Últimas 10 linhas de logs',
+						value: `\`\`\`${logs}\`\`\``
+					}
+				);
+			const stopButton = new ButtonBuilder()
+				.setCustomId(`stop;${interaction.user.id};${collector.values[0]}`)
+				.setLabel('Parar')
+				.setEmoji('⏹️')
+				.setDisabled(statusJSON.Status === 'running' ? false : true)
+				.setStyle('Danger');
+			const restartButton = new ButtonBuilder()
+				.setCustomId(`restart;${interaction.user.id};${collector.values[0]}`)
+				.setLabel('Reiniciar')
+				.setEmoji('🔄')
+				.setDisabled(statusJSON.Status === 'running' ? false : true)
+				.setStyle('Primary');
+			const logsButton = new ButtonBuilder()
+				.setCustomId(`logs;${interaction.user.id};${collector.values[0]}`)
+				.setLabel('Logs')
+				.setEmoji('📃')
+				.setDisabled(statusJSON.Status === 'running' ? false : true)
+				.setStyle('Secondary');
+			const startButton = new ButtonBuilder()
+				.setCustomId(`start;${interaction.user.id};${collector.values[0]}`)
+				.setLabel('Iniciar')
+				.setEmoji('▶️')
+				.setDisabled(statusJSON.Status === 'running' ? true : false)
+				.setStyle('Success');
+			const row = new ActionRowBuilder()
+				.addComponents(stopButton, restartButton, logsButton, startButton);
+			await interaction.editReply({ embeds: [embed], components: [row] });
 		}
 	},
 };
