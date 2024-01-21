@@ -105,9 +105,21 @@ module.exports = {
 				.setEmoji('▶️')
 				.setDisabled(statusJSON.Status === 'running' ? true : false)
 				.setStyle('Success');
+			const reloadButton = new ButtonBuilder()
+				.setCustomId(`reload;${interaction.user.id};${collector.values[0]}`)
+				.setEmoji('🔄')
+				.setDisabled(statusJSON.Status === 'running' ? true : false)
+				.setStyle('Secondary');
 			const row = new ActionRowBuilder()
-				.addComponents(stopButton, restartButton, logsButton, startButton);
-			await interaction.editReply({ embeds: [embed], components: [row] });
+				.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
+			const deleteButton = new ButtonBuilder()
+				.setCustomId(`delete;${interaction.user.id};${collector.values[0]}`)
+				.setValue('DELETAR BOT')
+				.setEmoji('🗑️')
+				.setStyle('Danger');
+			const row2 = new ActionRowBuilder()
+				.addComponents(deleteButton);
+			await interaction.editReply({ embeds: [embed], components: [row, row2] });
 		}
 	},
 };
