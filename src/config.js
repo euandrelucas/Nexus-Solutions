@@ -2,7 +2,7 @@ module.exports = {
 	dev: ['717766639260532826'],
 	supportServer: '',
 	logs: {
-		host: ''
+		host: '1198648041624838256'
 	},
 	client: {
 		id: process.env.CLIENT_ID,

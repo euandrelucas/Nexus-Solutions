@@ -110,7 +110,7 @@ module.exports = {
 				.setColor('Green')
 				.setTimestamp();
 			await interaction.editReply({ embeds: [embed] }).then(async () => {
-				const logs = await interaction.client.channels.cache.get(config.channels.logs);
+				const logs = await interaction.client.channels.cache.get(config.logs.host);
 				logs.send({
 					content: `${interaction.client.emoji.loading} | O bot ${botID} foi adicionado à fila de hospedagem!`
 				});
