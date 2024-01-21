@@ -8,6 +8,7 @@ module.exports = {
 	async execute (interaction) {
 		const user = await interaction.client.db.user.getUser(interaction.user.id);
 		const bots = user.hostBots;
+		if (bots.length === 0) return interaction.reply({ content: 'Você não tem nenhum bot hospedado!', ephemeral: true });
 		const select = new StringSelectMenuBuilder()
 			.setCustomId(`select;${interaction.user.id};bots`)
 			.setPlaceholder('Selecione o bot!')

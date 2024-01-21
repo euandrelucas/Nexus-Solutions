@@ -15,12 +15,12 @@ const createBot = async (userID, botID, language, ram, cpu, containerName) => {
 	return bot;
 };
 
-const delete = async (userID, botID) => {
-    const bot = await getBot(userID, botID);
-    if (!bot) return false;
-    await bot.delete();
-    return true;
-}
+const delete2 = async (userID, botID) => {
+	const bot = await getBot(userID, botID);
+	if (!bot) return false;
+	await bot.delete2();
+	return true;
+};
 
 const getBot = async (userID, botID) => {
 	const bot = await BotModel.findOne({ userID: userID, botID: botID });
@@ -36,7 +36,7 @@ const deleteBot = async (userID, botID) => {
 
 module.exports = {
 	getBot,
-    delete,
+	delete2,
 	createBot,
 	deleteBot
 };
