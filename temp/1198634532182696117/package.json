@@ -1,0 +1,30 @@
+{
+  "name": "lyra",
+  "version": "1.0",
+  "description": "Lyra is a Discord Bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --optimize_for_size --expose-gc --gc-interval=100 .",
+    "prod": "node --optimize_for_size --expose-gc --gc-interval=100 ."
+  },
+  "keywords": [],
+  "author": "euandrelucas",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.5",
+    "cheerio": "^1.0.0-rc.12",
+    "colors": "^1.4.0",
+    "discord-html-transcripts": "^3.2.0",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.25.2",
+    "mercadopago": "^2.0.6",
+    "mongoose": "^8.1.0",
+    "nubank-api": "^3.1.1",
+    "uuid": "^9.0.1",
+    "vulkava": "^1.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  }
+}

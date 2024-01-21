@@ -1,0 +1,30 @@
+# Arquivos e diretórios de desenvolvimento
+node_modules
+.git
+.vscode
+.idea
+
+# Arquivos de build e configuração local
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Arquivos de teste e exemplos
+test
+tests
+examples
+
+# Arquivos temporários e cache
+*.log
+*.tar
+*.zip
+
+# Arquivos de configuração de IDE e sistema
+.DS_Store
+Thumbs.db
+.editorconfig
+
+# Arquivos de documentação de desenvolvimento
+docs
+documentation
+development

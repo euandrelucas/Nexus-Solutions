@@ -1,0 +1,41 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - 'main'
+jobs:
+  deploy:
+    name: "Deploy to production"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Setup ssh
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/key
+          chmod 600 ~/.ssh/key
+          cat >>~/.ssh/config << END
+          Host prod
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile ~/.ssh/key
+            StrictHostKeyChecking no
+          END
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+      - name: Resetar o repositório
+        run: ssh prod 'bash -i -c "cd lyra && git reset --hard origin/main"'
+      - name: Clonar repositório
+        run: ssh prod 'cd lyra && git pull https://${{ secrets.GIT_SECRET }}:x-oauth-basic@github.com/lyradcbot/lyra.git main --force'
+      - name: Construindo container
+        run: ssh prod 'bash -i -c "cd lyra && docker compose build"'
+      - name: Parando o container atual
+        run: ssh prod 'bash -i -c "docker rm --force lyra"'
+      - name: Iniciando o novo container
+        run: ssh prod 'bash -i -c "cd lyra && docker compose up -d"'
+      - name: Deletando o cache do docker
+        run: ssh prod 'bash -i -c "docker system prune --all --force"'
