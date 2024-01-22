@@ -176,7 +176,7 @@ module.exports = async (interaction) => {
 		});
 	}
 	if (interaction.customId.startsWith('reload')) {
-		await interaction.deferReply();
+		await interaction.deferUpdate();
 		const status = child_process.execSync(`docker container inspect ${interaction.customId.split(';')[2]} --format '{{json .State}}'`).toString();
 		const statusJSON = JSON.parse(status);
 		const stats = child_process.execSync(`docker stats ${interaction.customId.split(';')[2]} --no-stream --format "{{json .}}"`).toString();
@@ -251,10 +251,9 @@ module.exports = async (interaction) => {
 		const reloadButton = new ButtonBuilder()
 			.setCustomId(`reload;${interaction.user.id};${interaction.customId.split(';')[2]}`)
 			.setEmoji('🔄')
-			.setDisabled(statusJSON.Status === 'running' ? true : false)
 			.setStyle('Secondary');
 		const row = new ActionRowBuilder()
 			.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
-		await interaction.editReply({ embeds: [embed], components: [row] });
+		await interaction.update({ embeds: [embed], components: [row] });
 	}
 };
