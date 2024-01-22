@@ -158,7 +158,7 @@ module.exports = {
 				nexusConfigJSON[lineArray[0].toLowerCase().replace(/\r/g, '')] = lineArray[1].replace(/\r/g, '');
 			});
 			const informRam = Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, ''));
-			if (informRam > limits.ram || used.ram > limits.ram) {
+			if (informRam >= limits.ram || used.ram >= limits.ram) {
 				fs.rmdirSync(botSpecificDir, { recursive: true });
 				return interaction.editReply({ content: `A quantidade de RAM não pode ser maior que ${Number(limits.ram) - used.ram}MB!`, ephemeral: true });
 			}
@@ -172,9 +172,14 @@ module.exports = {
 				return interaction.editReply({ content: 'O arquivo de inicialização do bot não foi encontrado!', ephemeral: true });
 			}
 
-			if (nexusConfigJSON.ram > 512) return interaction.editReply({ content: 'A quantidade de RAM não pode ser maior que 512MB!', ephemeral: true });
+			const freeRAM = limits.ram - used.ram;
+			const freeCPU = limits.cpu - used.cpu;
 
-			if (nexusConfigJSON.cpu > 2) return interaction.editReply({ content: 'A quantidade de CPU não pode ser maior que 2!', ephemeral: true });
+			console.log(freeRAM, freeCPU);
+
+			if (nexusConfigJSON.ram > freeRAM) return interaction.editReply({ content: 'A quantidade de RAM não pode ser maior que 512MB!', ephemeral: true });
+
+			if (nexusConfigJSON.cpu > freeCPU) return interaction.editReply({ content: 'A quantidade de CPU não pode ser maior que 2!', ephemeral: true });
 
 			const dockerImage = fs.readFileSync(path.resolve(`${botSpecificDir}/Dockerfile`), 'utf8');
 			const dockerImageArray = dockerImage.split('\n');
