@@ -3,7 +3,8 @@ module.exports = {
 	supportServer: '',
 	logs: {
 		host: '1198648041624838256',
-		freeBots: '1198673534550032484'
+		freeBots: '1198673534550032484',
+		premiumBots: '1198673734974845059'
 	},
 	client: {
 		id: process.env.CLIENT_ID,

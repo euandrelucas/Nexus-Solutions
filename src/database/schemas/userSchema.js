@@ -21,6 +21,11 @@ const userSchema = new Schema({
 		type: Array,
 		default: []
 	},
+	premium: {
+		type: Boolean,
+		time: Date,
+		default: false
+	},
 });
 
 module.exports = mongoose.model('User', userSchema);

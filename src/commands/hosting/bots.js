@@ -33,12 +33,9 @@ module.exports = {
 		if (collector.customId === `select;${interaction.user.id};bots`) {
 			const status = child_process.execSync(`docker container inspect ${collector.values[0]} --format '{{json .State}}'`).toString();
 			const statusJSON = JSON.parse(status);
-			console.log(statusJSON);
 			const stats = child_process.execSync(`docker stats ${collector.values[0]} --no-stream --format "{{json .}}"`).toString();
 			const statsJSON = JSON.parse(stats);
-			console.log(statsJSON);
 			const logs = child_process.execSync(`docker logs --tail 5 ${collector.values[0]}`).toString();
-			console.log(logs);
 			const botinfo = await interaction.client.users.cache.get(collector.values[0]) ? interaction.client.users.cache.get(collector.values[0]) : await interaction.client.users.fetch(collector.values[0], {
 				force: true
 			});

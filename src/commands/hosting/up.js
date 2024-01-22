@@ -1,3 +1,4 @@
+/* eslint-disable max-nested-callbacks */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const child_process = require('child_process');
 const config = require('../../config');
@@ -43,6 +44,70 @@ module.exports = {
 			return interaction.reply({ content: 'O arquivo do bot deve estar em formato .zip!', ephemeral: true });
 		}
 
+		const data = {};
+		const limits = {};
+		const used = {};
+
+		const hostinfo = await interaction.client.db.hosting.getCentral(interaction.guild.id);
+		const userData = await interaction.client.db.user.checkUser(interaction.user.id);
+		const userPremium = await interaction.client.db.user.getPremium(interaction.user.id);
+
+		if (userPremium.premium === 'free') {
+			data.type === 'free';
+			const userBots = userData.hostBots;
+			userBots.forEach(bot => {
+				if (bot.ram > 512) {
+					used.ram += bot.ram;
+				}
+				if (bot.cpu > 1) {
+					used.cpu += bot.cpu;
+				}
+			});
+			if (used.ram > 512) {
+				limits.ram = 512;
+				limits.cpu = 1;
+				return interaction.reply({ content: 'Você atingiu o limite de RAM free!', ephemeral: true });
+			}
+			if (used.cpu > 1) {
+				limits.ram = 512;
+				limits.cpu = 1;
+				return interaction.reply({ content: 'Você atingiu o limite de CPU free!', ephemeral: true });
+			}
+			if (hostinfo.freeBots === hostinfo.freeBotsLimit || hostinfo.freeBots > hostinfo.freeBotsLimit) {
+				return interaction.reply({ content: 'Estamos sem vagas de bots gratuitos!', ephemeral: true });
+			}
+			limits.ram = 512;
+			limits.cpu = 1;
+		}
+
+		if (userPremium.premium === 'bronze') {
+			data.type === 'premium';
+			const userBots = userData.hostBots;
+			userBots.forEach(bot => {
+				if (bot.ram > 1024) {
+					used.ram += bot.ram;
+				}
+				if (bot.cpu > 2) {
+					used.cpu += bot.cpu;
+				}
+			});
+			if (used.ram > 1024) {
+				limits.ram = 1024;
+				limits.cpu = 2;
+				return interaction.reply({ content: 'Você atingiu o limite de RAM bronze!', ephemeral: true });
+			}
+			if (used.cpu > 2) {
+				limits.ram = 1024;
+				limits.cpu = 2;
+				return interaction.reply({ content: 'Você atingiu o limite de CPU bronze!', ephemeral: true });
+			}
+			if (hostinfo.bronzeBots === hostinfo.premiumBotsLimit || hostinfo.bronzeBots > hostinfo.premiumBotsLimit) {
+				return interaction.reply({ content: 'Estamos sem vagas de bots bronze!', ephemeral: true });
+			}
+			limits.ram = 1024;
+			limits.cpu = 2;
+		}
+
 		const response = await axios.get(file.url, { responseType: 'arraybuffer' });
 		const botFile = response.data;
 		const tempDir = './temp';
@@ -83,14 +148,22 @@ module.exports = {
 
 			const nexusConfig = fs.readFileSync(path.resolve(`${botSpecificDir}/nexus.config`), 'utf8');
 
-			console.log(nexusConfig);
 			const nexusConfigArray = nexusConfig.split('\n');
 			const nexusConfigJSON = {};
 			nexusConfigArray.forEach(line => {
 				const lineArray = line.split('=');
 				nexusConfigJSON[lineArray[0].toLowerCase().replace(/\r/g, '')] = lineArray[1].replace(/\r/g, '');
 			});
-
+			const informRam = Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, ''));
+			if (informRam > limits.ram) {
+				fs.rmdirSync(botSpecificDir, { recursive: true });
+				return interaction.editReply({ content: `A quantidade de RAM não pode ser maior que ${limits.ram}MB!`, ephemeral: true });
+			}
+			const informCPU = Number(nexusConfigJSON.cpu);
+			if (informCPU > limits.cpu) {
+				fs.rmdirSync(botSpecificDir, { recursive: true });
+				return interaction.editReply({ content: `A quantidade de CPU não pode ser maior que ${limits.cpu}!`, ephemeral: true });
+			}
 			if (!nexusConfigJSON.run.endsWith('.js')) {
 				fs.rmdirSync(botSpecificDir, { recursive: true });
 				return interaction.editReply({ content: 'O arquivo de inicialização do bot não foi encontrado!', ephemeral: true });
@@ -115,59 +188,74 @@ module.exports = {
 				logs.send({
 					content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado à fila de hospedagem!`
 				});
-
-				child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error) => {
-					logs.send({
-						content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo montado...`
-					});
-					if (error) {
-						logs.send({
-							content: `${interaction.client.emoji.error} | Ocorreu um erro ao montar o bot \`${bot.username.replace(/`/g, '')}\`.\n\`\`\`${error}\`\`\``
-						});
-						return;
-					}
-					logs.send({
-						content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi montado!`
-					});
-					logs.send({
-						content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo iniciado...`
-					});
-					child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error, stdout, stderr) => {
+				logs.send({
+					content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo montado...`
+				}).then(async (m) => {
+					child_process.exec(`docker build -t ${botID} ${botSpecificDir}`, async (error, stdout) => {
 						if (error) {
-							logs.send({
-								content: `${interaction.client.emoji.error} | Ocorreu um erro ao iniciar o bot \`${bot.username.replace(/`/g, '')}\`.\n\`\`\`${error}\`\`\``
+							m.edit({
+								content: `${interaction.client.emoji.error} | Ocorreu um erro ao montar o bot \`${bot.username.replace(/`/g, '')}\`.\n\`\`\`${error}\`\`\``
 							});
 							return;
 						}
-						logs.send({
-							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi iniciado!`
+						const output = stdout.split('\n');
+						output.splice(0, output.length - 5);
+						const stdout2 = output.join('\n');
+						m.edit({
+							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo montado...\n\`\`\`${stdout2.replace(/`/g, '')}\`\`\``
+						});
+						m.edit({
+							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi montado!`
 						});
 						logs.send({
-							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
-						});
-						await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')), Number(nexusConfigJSON.cpu), botID);
-						const user = await interaction.client.db.user.checkUser(interaction.user.id);
-						if (!user) return;
-						await interaction.client.db.user.addBot(interaction.user.id, botID, language, Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')), Number(nexusConfigJSON.cpu));
-						logs.send({
-							content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
-						});
-						child_process.exec('docker system prune -f', async (error) => {
-							if (error) {
-								logs.send({
-									content: `${interaction.client.emoji.error} | Ocorreu um erro ao limpar o cache do docker.\n\`\`\`${error}\`\`\``
+							content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo iniciado...`
+						}).then(async (m2) => {
+							child_process.exec(`docker run -d --name ${botID} --memory="${nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')}mb" --cpus="${nexusConfigJSON.cpu}" ${botID}`, async (error) => {
+								if (error) {
+									m2.edit({
+										content: `${interaction.client.emoji.error} | Ocorreu um erro ao iniciar o bot \`${bot.username.replace(/`/g, '')}\`.\n\`\`\`${error}\`\`\``
+									});
+									return;
+								}
+								m2.edit({
+									content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi iniciado!`
 								});
-								return;
-							}
-							logs.send({
-								content: `${interaction.client.emoji.success} | O cache do docker foi limpo!`
-							});
-							await interaction.client.db.hosting.addFreeBot(interaction.guild.id);
-							const central = await interaction.client.db.hosting.getCentral(interaction.guild.id);
-							console.log(central.freeBots);
-							const freeBotsChannel = await interaction.client.channels.cache.get(config.logs.freeBots);
-							freeBotsChannel.edit({
-								name: `➤💻︙Bots Free: ${central.freeBots}/${central.freeBotsLimit}`
+								logs.send({
+									content: `${interaction.client.emoji.loading} | O bot \`${bot.username.replace(/`/g, '')}\` está sendo adicionado ao banco de dados...`
+								}).then(async (m3) => {
+									await interaction.client.db.hbots.createBot(interaction.user.id, botID, language, Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')), Number(nexusConfigJSON.cpu), botID);
+									const user = await interaction.client.db.user.checkUser(interaction.user.id);
+									if (!user) return;
+									await interaction.client.db.user.addBot(interaction.user.id, botID, language, Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, '')), Number(nexusConfigJSON.cpu));
+									m3.edit({
+										content: `${interaction.client.emoji.success} | O bot \`${bot.username.replace(/`/g, '')}\` foi adicionado ao banco de dados!`
+									});
+									child_process.exec('docker system prune -f', async (error) => {
+										if (error) {
+											logs.send({
+												content: `${interaction.client.emoji.error} | Ocorreu um erro ao limpar o cache do docker.\n\`\`\`${error}\`\`\``
+											});
+											return;
+										}
+										logs.send({
+											content: `${interaction.client.emoji.success} | O cache do docker foi limpo!`
+										});
+										await interaction.client.db.hosting.addFreeBot(interaction.guild.id);
+										const central = await interaction.client.db.hosting.getCentral(interaction.guild.id);
+										if (data.type === 'free') {
+											const freeBotsChannel = await interaction.client.channels.cache.get(config.logs.freeBots);
+											freeBotsChannel.edit({
+												name: `➤💻︙Bots Free: ${central.freeBots}/${central.freeBotsLimit}`
+											});
+										}
+										if (data.type === 'premium') {
+											const premiumBotsChannel = await interaction.client.channels.cache.get(config.logs.premiumBots);
+											premiumBotsChannel.edit({
+												name: `➤💎︙Bots VIP: ${central.bronzeBots}${central.premiumBotsLimit === Infinity ? '' : `/${central.premiumBotsLimit}`}`
+											});
+										}
+									});
+								});
 							});
 						});
 					});
