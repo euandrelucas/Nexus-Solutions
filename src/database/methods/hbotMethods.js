@@ -15,28 +15,25 @@ const createBot = async (userID, botID, language, ram, cpu, containerName) => {
 	return bot;
 };
 
-const delete2 = async (userID, botID) => {
-	const bot = await getBot(userID, botID);
-	if (!bot) return false;
-	await bot.delete2();
-	return true;
-};
-
 const getBot = async (userID, botID) => {
 	const bot = await BotModel.findOne({ userID: userID, botID: botID });
 	return bot;
 };
 
 const deleteBot = async (userID, botID) => {
-	const bot = await getBot(userID, botID);
-	if (!bot) return false;
-	await bot.delete2();
-	return true;
+	try {
+		const result = await BotModel.findOneAndDelete({ userID: userID, botID: botID });
+		return result !== null;
+	}
+	catch (error) {
+		console.error('Erro ao excluir bot:', error);
+		return false;
+	}
 };
+
 
 module.exports = {
 	getBot,
-	delete2,
 	createBot,
 	deleteBot
 };
