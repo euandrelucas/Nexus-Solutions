@@ -30,7 +30,7 @@ const getBot = async (userID, botID) => {
 const deleteBot = async (userID, botID) => {
 	const bot = await getBot(userID, botID);
 	if (!bot) return false;
-	await bot.delete();
+	await bot.delete2();
 	return true;
 };
 
