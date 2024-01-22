@@ -169,6 +169,7 @@ module.exports = async (interaction) => {
 		const user2 = await interaction.client.db.user.checkUser(interaction.user.id);
 		if (!user2) return;
 		await interaction.client.db.user.removeBot(interaction.user.id, bot.id);
+		await interaction.edit({ components: [] });
 		await interaction.editReply({ content: 'Bot excluído com sucesso!', ephemeral: true });
 		const logsc = await interaction.client.channels.cache.get(config.logs.host);
 		logsc.send({
@@ -176,7 +177,6 @@ module.exports = async (interaction) => {
 		});
 	}
 	if (interaction.customId.startsWith('reload')) {
-		// await interaction.deferUpdate();
 		const status = child_process.execSync(`docker container inspect ${interaction.customId.split(';')[2]} --format '{{json .State}}'`).toString();
 		const statusJSON = JSON.parse(status);
 		const stats = child_process.execSync(`docker stats ${interaction.customId.split(';')[2]} --no-stream --format "{{json .}}"`).toString();

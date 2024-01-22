@@ -46,7 +46,10 @@ module.exports = {
 
 		const data = {};
 		const limits = {};
-		const used = {};
+		const used = {
+			ram: 0,
+			cpu: 0
+		};
 
 		const hostinfo = await interaction.client.db.hosting.getCentral(interaction.guild.id);
 		const userData = await interaction.client.db.user.checkUser(interaction.user.id);
@@ -155,14 +158,14 @@ module.exports = {
 				nexusConfigJSON[lineArray[0].toLowerCase().replace(/\r/g, '')] = lineArray[1].replace(/\r/g, '');
 			});
 			const informRam = Number(nexusConfigJSON.ram.replace(/MB/g, '').replace(/GB/g, '').replace(/G/g, ''));
-			if (informRam > limits.ram) {
+			if (informRam > limits.ram || used.ram > limits.ram) {
 				fs.rmdirSync(botSpecificDir, { recursive: true });
-				return interaction.editReply({ content: `A quantidade de RAM não pode ser maior que ${limits.ram}MB!`, ephemeral: true });
+				return interaction.editReply({ content: `A quantidade de RAM não pode ser maior que ${Number(limits.ram) - used.ram}MB!`, ephemeral: true });
 			}
 			const informCPU = Number(nexusConfigJSON.cpu);
-			if (informCPU > limits.cpu) {
+			if (informCPU > limits.cpu || used.cpu > limits.cpu) {
 				fs.rmdirSync(botSpecificDir, { recursive: true });
-				return interaction.editReply({ content: `A quantidade de CPU não pode ser maior que ${limits.cpu}!`, ephemeral: true });
+				return interaction.editReply({ content: `A quantidade de CPU não pode ser maior que ${Number(limits.cpu) - Number(used.cpu)}!`, ephemeral: true });
 			}
 			if (!nexusConfigJSON.run.endsWith('.js')) {
 				fs.rmdirSync(botSpecificDir, { recursive: true });
