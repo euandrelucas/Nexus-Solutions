@@ -254,6 +254,6 @@ module.exports = async (interaction) => {
 			.setStyle('Secondary');
 		const row = new ActionRowBuilder()
 			.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
-		await interaction.editUpdate({ embeds: [embed], components: [row] });
+		await interaction.edit({ embeds: [embed], components: [row] });
 	}
 };
