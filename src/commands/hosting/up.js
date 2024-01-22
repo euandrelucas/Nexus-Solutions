@@ -177,9 +177,9 @@ module.exports = {
 
 			console.log(freeRAM, freeCPU);
 
-			if (nexusConfigJSON.ram > freeRAM) return interaction.editReply({ content: 'A quantidade de RAM não pode ser maior que 512MB!', ephemeral: true });
+			if (nexusConfigJSON.ram > freeRAM) return interaction.editReply({ content: 'A quantidade de RAM não pode ser maior que ' + freeRAM + 'MB', ephemeral: true });
 
-			if (nexusConfigJSON.cpu > freeCPU) return interaction.editReply({ content: 'A quantidade de CPU não pode ser maior que 2!', ephemeral: true });
+			if (nexusConfigJSON.cpu > freeCPU) return interaction.editReply({ content: 'A quantidade de CPU não pode ser maior que ' + freeCPU + '%', ephemeral: true });
 
 			const dockerImage = fs.readFileSync(path.resolve(`${botSpecificDir}/Dockerfile`), 'utf8');
 			const dockerImageArray = dockerImage.split('\n');
