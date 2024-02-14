@@ -13,7 +13,7 @@
     "axios": "^1.6.5",
     "colors": "^1.4.0",
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.2",
+    "dotenv": "^16.4.4",
     "eslint": "^8.56.0",
     "extract-zip": "^2.0.1",
     "mongoose": "^8.1.0"
