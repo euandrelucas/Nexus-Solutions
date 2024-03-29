@@ -7,6 +7,7 @@ module.exports = {
 		.setDescription('Lista os bots que você tem hospedado!'),
 	async execute (interaction) {
 		const user = await interaction.client.db.user.getUser(interaction.user.id);
+		if (!user) return interaction.reply({ content: 'Ocorreu um erro ao buscar suas informações!', ephemeral: true });
 		const bots = user.hostBots;
 		if (bots.length === 0) return interaction.reply({ content: 'Você não tem nenhum bot hospedado!', ephemeral: true });
 		const select = new StringSelectMenuBuilder()

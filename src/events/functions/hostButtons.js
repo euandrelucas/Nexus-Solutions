@@ -127,11 +127,11 @@ module.exports = async (interaction) => {
 		const userId = interaction.customId.split(';')[1];
 		if (interaction.user.id !== userId) return interaction.editReply({ content: 'Você não pode excluir o bot de outra pessoa!', ephemeral: true });
 		const botId = interaction.customId.split(';')[2];
-		/*
+
 		await child_process.execSync(`docker commit ${botId} backups/${botId}-backup`).toString();
 		await child_process.execSync(`docker export ${botId} > backups/${botId}-backup.tar`).toString();
 		await child_process.execSync(`tar -czvf ${botId}-backup.tar.gz ${botId}-backup.tar`).toString();
-        */
+
 		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
 			force: true
 		});
