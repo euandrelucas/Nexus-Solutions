@@ -21,6 +21,7 @@ const client = new Client({
 	],
 });
 
+require('../express.js');
 client.commands = new Collection();
 client.db = require('./database/db.js');
 client.emoji = require('./modules/emojis.json');
