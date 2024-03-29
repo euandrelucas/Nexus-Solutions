@@ -129,7 +129,7 @@ module.exports = async (interaction) => {
 		const botId = interaction.customId.split(';')[2];
 
 		await child_process.execSync(`docker commit ${botId} backups/${botId}-backup`).toString();
-		await child_process.execSync(`docker export ${botId} > backups/${botId}-backup.tar`).toString();
+		await child_process.execSync(`docker export ${botId} usr/src/app > backups/${botId}-backup.tar`).toString();
 		const secretFileName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 		await child_process.execSync(`cd backups && tar -czvf ${botId}_${secretFileName}-backup.tar.gz ${botId}-backup.tar`).toString();
 		await child_process.execSync(`rm backups/${botId}-backup.tar`).toString();
