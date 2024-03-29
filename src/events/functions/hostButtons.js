@@ -1,7 +1,7 @@
 const { AttachmentBuilder, EmbedBuilder, ButtonBuilder, ActionRowBuilder } = require('discord.js');
 const child_process = require('child_process');
 const config = require('../../config');
-
+const fs = require('fs');
 module.exports = async (interaction) => {
 	if (interaction.customId.startsWith('logs')) {
 		await interaction.deferReply({ ephemeral: true });
@@ -127,12 +127,21 @@ module.exports = async (interaction) => {
 		const userId = interaction.customId.split(';')[1];
 		if (interaction.user.id !== userId) return interaction.editReply({ content: 'Você não pode excluir o bot de outra pessoa!', ephemeral: true });
 		const botId = interaction.customId.split(';')[2];
-
+		/*
 		await child_process.execSync(`docker commit ${botId} backups/${botId}-backup`).toString();
-		await child_process.execSync(`docker export ${botId} usr/src/app > backups/${botId}-backup.tar`).toString();
+		await child_process.execSync(`docker export ${botId} > backups/${botId}-backup.tar`).toString();
 		const secretFileName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 		await child_process.execSync(`cd backups && tar -czvf ${botId}_${secretFileName}-backup.tar.gz ${botId}-backup.tar`).toString();
 		await child_process.execSync(`rm backups/${botId}-backup.tar`).toString();
+		*/
+		const tempDir = `./temp_${botId}`;
+		fs.mkdirSync(tempDir);
+		await child_process.execSync(`docker cp ${botId}:/usr/src/app ${tempDir}`);
+		const secretFileName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+		await child_process.execSync(`tar -czvf backups/${botId}_${secretFileName}-backup.tar.gz ${tempDir}/app`);
+		fs.rmdirSync(tempDir, { recursive: true });
+
+		console.log('Backup criado com sucesso.');
 
 		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
 			force: true
