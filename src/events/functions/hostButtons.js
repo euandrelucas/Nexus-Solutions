@@ -130,7 +130,9 @@ module.exports = async (interaction) => {
 
 		await child_process.execSync(`docker commit ${botId} backups/${botId}-backup`).toString();
 		await child_process.execSync(`docker export ${botId} > backups/${botId}-backup.tar`).toString();
-		await child_process.execSync(`cd backups && tar -czvf ${botId}-backup.tar.gz ${botId}-backup.tar`).toString();
+		const secretFileName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+		await child_process.execSync(`cd backups && tar -czvf ${botId}_${secretFileName}-backup.tar.gz ${botId}-backup.tar`).toString();
+		await child_process.execSync(`rm backups/${botId}-backup.tar`).toString();
 
 		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
 			force: true
@@ -147,6 +149,7 @@ module.exports = async (interaction) => {
 				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
 			})
 			.setColor('Blurple');
+		await user.send({ content: `O bot foi excluído com sucesso, faça o download do backup em: https://backup.andrepaiva.dev/${botId}_${secretFileName}-backup.tar.gz`, ephemeral: true });
 		await user.send({ embeds: [embed2] }).catch(() => {
 			return interaction.editReply({ embeds: [embed], ephemeral: true });
 		});
