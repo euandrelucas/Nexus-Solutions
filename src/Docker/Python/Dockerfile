@@ -13,4 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie o código-fonte para o diretório de trabalho
 COPY . .
 
+# Crie um usuário não-root
+RUN adduser --disabled-password --gecos '' appuser
+
+# Mude para o usuário não-root
+USER appuser
+
 # Comando para executar o bot quando o contêiner for iniciado
