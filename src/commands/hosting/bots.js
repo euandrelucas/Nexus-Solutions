@@ -114,8 +114,13 @@ module.exports = {
 				.setLabel('Deletar bot')
 				.setEmoji('🗑️')
 				.setStyle('Danger');
+			const backupButton = new ButtonBuilder()
+				.setCustomId(`backup;${interaction.user.id};${collector.values[0]}`)
+				.setLabel('Backup')
+				.setEmoji('🗳️')
+				.setStyle('Secondary');
 			const row2 = new ActionRowBuilder()
-				.addComponents(deleteButton);
+				.addComponents(deleteButton, backupButton);
 			await collector.update({ embeds: [embed], components: [row, row2] });
 		}
 	},

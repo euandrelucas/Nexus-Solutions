@@ -255,8 +255,44 @@ module.exports = async (interaction) => {
 			.setCustomId(`reload;${interaction.user.id};${interaction.customId.split(';')[2]}`)
 			.setEmoji('🔄')
 			.setStyle('Secondary');
+		const deleteButton = new ButtonBuilder()
+			.setCustomId(`delete;${interaction.user.id};${interaction.customId.split(';')[2]}`)
+			.setLabel('Deletar bot')
+			.setEmoji('🗑️')
+			.setStyle('Danger');
+		const backupButton = new ButtonBuilder()
+			.setCustomId(`backup;${interaction.user.id};${interaction.customId.split(';')[2]}`)
+			.setLabel('Backup')
+			.setEmoji('🗳️')
+			.setStyle('Secondary');
+		const row2 = new ActionRowBuilder()
+			.addComponents(deleteButton, backupButton);
 		const row = new ActionRowBuilder()
 			.addComponents(stopButton, restartButton, logsButton, startButton, reloadButton);
-		await interaction.update({ embeds: [embed], components: [row] });
+		await interaction.update({ embeds: [embed], components: [row, row2] });
+	}
+	if (interaction.customId.startsWith('backup')) {
+		await interaction.deferReply({ ephemeral: true });
+		const userId = interaction.customId.split(';')[1];
+		const botId = interaction.customId.split(';')[2];
+		const tempDir = `./temp_${botId}`;
+		fs.mkdirSync(tempDir);
+		await child_process.execSync(`docker cp ${botId}:/usr/src/app ${tempDir}`);
+		const secretFileName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+		await child_process.execSync(`cd ${tempDir}/app && rm -rf node_modules`);
+		await child_process.execSync(`tar -czvf backups/${botId}_${secretFileName}-backup.tar.gz ${tempDir}/app`);
+		fs.rmdirSync(tempDir, { recursive: true });
+		const user = await interaction.client.users.cache.get(userId) ? await interaction.client.users.cache.get(userId) : await interaction.client.users.fetch(userId, {
+			force: true
+		});
+		const bot = await interaction.client.users.cache.get(botId) ? await interaction.client.users.cache.get(botId) : await interaction.client.users.fetch(botId, {
+			force: true
+		});
+		await user.send({ content: `Backup criado com sucesso, faça o download em: https://backup.andrepaiva.dev/${botId}_${secretFileName}-backup.tar.gz`, ephemeral: true });
+		await interaction.editReply({ content: 'Backup criado com sucesso!', ephemeral: true });
+		const logsc = await interaction.client.channels.cache.get(config.logs.host);
+		logsc.send({
+			content: `${interaction.client.emoji.success} | O backup do bot \`${bot.username.replace(/`/g, '')}\` foi criado pelo usuário \`${user.tag}\`!`
+		});
 	}
 };
