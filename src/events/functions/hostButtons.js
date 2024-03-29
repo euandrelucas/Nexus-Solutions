@@ -127,6 +127,7 @@ module.exports = async (interaction) => {
 		const userId = interaction.customId.split(';')[1];
 		if (interaction.user.id !== userId) return interaction.editReply({ content: 'Você não pode excluir o bot de outra pessoa!', ephemeral: true });
 		const botId = interaction.customId.split(';')[2];
+
 		/*
 		await child_process.execSync(`docker commit ${botId} backups/${botId}-backup`).toString();
 		await child_process.execSync(`docker export ${botId} > backups/${botId}-backup.tar`).toString();
@@ -134,10 +135,12 @@ module.exports = async (interaction) => {
 		await child_process.execSync(`cd backups && tar -czvf ${botId}_${secretFileName}-backup.tar.gz ${botId}-backup.tar`).toString();
 		await child_process.execSync(`rm backups/${botId}-backup.tar`).toString();
 		*/
+
 		const tempDir = `./temp_${botId}`;
 		fs.mkdirSync(tempDir);
 		await child_process.execSync(`docker cp ${botId}:/usr/src/app ${tempDir}`);
 		const secretFileName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+		await child_process.execSync(`cd ${tempDir}/app && rm -rf node_modules`);
 		await child_process.execSync(`tar -czvf backups/${botId}_${secretFileName}-backup.tar.gz ${tempDir}/app`);
 		fs.rmdirSync(tempDir, { recursive: true });
 
@@ -149,19 +152,7 @@ module.exports = async (interaction) => {
 		const bot = await interaction.client.users.cache.get(botId) ? await interaction.client.users.cache.get(botId) : await interaction.client.users.fetch(botId, {
 			force: true
 		});
-		const embed2 = new EmbedBuilder()
-			.setTitle(`Excluir - ${bot.username}`)
-			.setDescription(`O bot ${botId} foi excluído com sucesso!`)
-			.setThumbnail(bot.displayAvatarURL({ dynamic: true, size: 4096 }))
-			.setFooter({
-				text: 'Powered by: Nexus Solutions',
-				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true, size: 4096 })
-			})
-			.setColor('Blurple');
 		await user.send({ content: `O bot foi excluído com sucesso, faça o download do backup em: https://backup.andrepaiva.dev/${botId}_${secretFileName}-backup.tar.gz`, ephemeral: true });
-		await user.send({ embeds: [embed2] }).catch(() => {
-			return interaction.editReply({ embeds: [embed], ephemeral: true });
-		});
 		await child_process.execSync(`docker stop ${botId}`).toString();
 		await child_process.execSync(`docker rm ${botId}`).toString();
 		await child_process.execSync(`docker rmi ${botId}`).toString();
@@ -181,7 +172,7 @@ module.exports = async (interaction) => {
 		const user2 = await interaction.client.db.user.checkUser(interaction.user.id);
 		if (!user2) return;
 		await interaction.client.db.user.removeBot(interaction.user.id, bot.id);
-		await interaction.edit({ components: [] });
+		// await interaction.edit({ components: [] });
 		await interaction.editReply({ content: 'Bot excluído com sucesso!', ephemeral: true });
 		const logsc = await interaction.client.channels.cache.get(config.logs.host);
 		logsc.send({
