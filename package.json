@@ -14,7 +14,7 @@
     "colors": "^1.4.0",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.2",
-    "eslint": "^8.56.0",
+    "eslint": "^9.20.1",
     "express": "^4.19.2",
     "extract-zip": "^2.0.1",
     "mongoose": "^8.1.0"
